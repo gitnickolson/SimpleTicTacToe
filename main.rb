@@ -25,6 +25,8 @@ class Board
   end
 
   def not_labeled?(board_index, player_input)
+    # 3 = 0, 4 = 1, 5 = 2, 6 = 0, 7 = 1, 8 = 2
+    player_input = (player_input - 3) % 3
     board_visual[board_index][player_input] != "X" && board_visual[board_index][player_input] != "O"
   end
 
@@ -60,7 +62,7 @@ class Board
     if d_array.all?("X") or m_d_array.all?("X") or
       vertical0.all?("X") or vertical1.all?("X") or vertical2.all?("X")
       @x_row = true
-    elsif d_array.flatten.all?("O") or m_d_array.flatten.all?("O")
+    elsif d_array.all?("O") or m_d_array.all?("O") or
       vertical0.all?("O") or vertical1.all?("O") or vertical2.all?("O")
       @o_row = true
     end
