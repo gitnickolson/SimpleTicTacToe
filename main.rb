@@ -1,12 +1,13 @@
 class Board
-  attr_accessor :board_visual, :o_row, :x_row
+  attr_accessor :board_visual, :o_winner, :x_winner
+
   COLUMN_SIZE = 3
   ROW_SIZE = 3
 
   def initialize
     @board_visual = Array.new(COLUMN_SIZE) {Array.new(ROW_SIZE)}
-    @x_row = false
-    @o_row = false
+    @x_winner = false
+    @o_winner = false
   end
 
   def update_board(array, index, symbol)
@@ -26,45 +27,44 @@ class Board
 
   def not_labeled?(board_index, player_input)
     # 3 = 0, 4 = 1, 5 = 2, 6 = 0, 7 = 1, 8 = 2
-    player_input = (player_input - 3) % 3
+    player_input = player_input % 3
     board_visual[board_index][player_input] != "X" && board_visual[board_index][player_input] != "O"
   end
 
   def who_wins?
     diagonal = 0
     mirrored_diagonal = 2
-    d_array = Array.new
-    m_d_array = Array.new
-    vertical0 = Array.new
-    vertical1 = Array.new
-    vertical2 = Array.new
+    diagonal_array = Array.new
+    mirrored_diagonal_array = Array.new
+    first_row_vertical_array = Array.new
+    second_row_vertical_array = Array.new
+    third_row_vertical_array = Array.new
 
     board_visual.each_with_index do |h_array, board_index|
       board_visual
-      d_array << h_array[diagonal]
-      m_d_array << h_array[mirrored_diagonal]
-      vertical0 << h_array[0]
-      vertical1 << h_array[1]
-      vertical2 << h_array[2]
+      diagonal_array << h_array[diagonal]
+      mirrored_diagonal_array << h_array[mirrored_diagonal]
+      first_row_vertical_array << h_array[0]
+      second_row_vertical_array << h_array[1]
+      third_row_vertical_array << h_array[2]
       diagonal += 1
       mirrored_diagonal -= 1
 
-      # p h_array
-      # p d_array
-      # p m_d_array
-
       if h_array.flatten.all?("X")
-        @x_row = true
+        x_winner = true
       elsif h_array.flatten.all?("O")
-        @o_row = true
+        o_winner = true
       end
     end
-    if d_array.all?("X") or m_d_array.all?("X") or
-      vertical0.all?("X") or vertical1.all?("X") or vertical2.all?("X")
-      @x_row = true
-    elsif d_array.all?("O") or m_d_array.all?("O") or
-      vertical0.all?("O") or vertical1.all?("O") or vertical2.all?("O")
-      @o_row = true
+
+    if diagonal_array.all?("X") or mirrored_diagonal_array.all?("X") or
+      first_row_vertical_array.all?("X") or second_row_vertical_array.all?("X") or
+      third_row_vertical_array.all?("X")
+      @x_winner = true
+    elsif diagonal_array.all?("O") or mirrored_diagonal_array.all?("O") or
+      first_row_vertical_array.all?("O") or second_row_vertical_array.all?("O") or
+      third_row_vertical_array.all?("O")
+      @o_winner = true
     end
   end
 end
@@ -85,41 +85,32 @@ end
 
 
 class Game
-  attr_reader :player, :game_won
-  @turn_counter
+  attr_accessor :turn_counter
 
   def initialize
     @turn_counter = 0
   end
 
   def player_turn(player_input, symbol, board)
+    # Zeile = /, Spalte = %, 93 - 117
     player_input -= 1
     if player_input.between?(0, 8)
-      if player_input.between?(0, 2) && board.not_labeled?(0, player_input)
-        board.update_board(0, player_input, symbol)
-        @turn_counter += 1
+      new_player_input = player_input / 3
+      if board.not_labeled?(new_player_input, player_input % 3)
+        case new_player_input
+        when 0
+          board.update_board(new_player_input, player_input % 3, symbol)
+          @turn_counter += 1
 
-      elsif player_input.between?(3, 5) && board.not_labeled?(1, player_input)
-        case player_input
-        when 3
-          board.update_board(1, 0, symbol)
-        when 4
-          board.update_board(1, 1, symbol)
-        when 5
-          board.update_board(1, 2, symbol)
-        end
-        @turn_counter += 1
+        when 1
+          board.update_board(new_player_input, player_input % 3, symbol)
+          @turn_counter += 1
 
-      elsif player_input.between?(6, 8) && board.not_labeled?(2, player_input)
-        case player_input
-        when 6
-          board.update_board(2, 0, symbol)
-        when 7
-          board.update_board(2, 1, symbol)
-        when 8
-          board.update_board(2, 2, symbol)
+        when 2
+          board.update_board(new_player_input, player_input % 3, symbol)
+          @turn_counter += 1
         end
-        @turn_counter += 1
+
       else
         puts "Please enter the number of a field that has not been labeled yet."
       end
@@ -132,34 +123,34 @@ class Game
     game_ended = false
 
     board.who_wins?
-    if board.x_row == true or board.o_row == true
+    if board.x_winner == true or board.o_winner == true
       game_ended = true
-      game_end(board.x_row, board.o_row)
+      game_end(board.x_winner, board.o_winner)
     end
 
     if @turn_counter < 9 and game_ended == false
-      if @turn_counter.even?
+      if turn_counter.even?
         puts "Player 1: Your turn. Please enter a number between 1 and 9"
         player_turn(player_one.get_player_input, player_one.symbol, board)
-        game_loop(player_one, player_two, board)
       else
         puts "Player 2: Your turn. Please enter a number between 1 and 9"
         player_turn(player_two.get_player_input, player_two.symbol, board)
-        game_loop(player_one, player_two, board)
       end
+      game_loop(player_one, player_two, board)
     end
     if @turn_counter >= 9 and game_ended == false
-      game_end(board.x_row, board.o_row)
+      game_end(board.x_winner, board.o_winner)
     end
   end
 
-  def game_end(x_row, o_row)
-    if x_row == true
+  def game_end(x_winner, o_winner)
+    if x_winner == true
       puts "The game ended after #{@turn_counter} turns! Player 1 wins!"
-    elsif o_row == true
+    elsif o_winner == true
       puts "The game ended after #{@turn_counter} turns! Player 2 wins!"
     else
       puts "The board is full and there is no winner! It's a tie!"
+      exit
     end
   end
 end
