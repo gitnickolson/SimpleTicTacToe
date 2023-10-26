@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'player'
 require_relative 'board'
 
@@ -17,10 +19,10 @@ class Game
         board.update_board(array_position, row_position, symbol)
         @turn_counter += 1
       else
-        puts "Please enter the number of a field that has not been labeled yet."
+        puts 'Please enter the number of a field that has not been labeled yet.'
       end
     else
-      puts "Please enter a number between 1 and 9."
+      puts 'Please enter a number between 1 and 9.'
     end
   end
 
@@ -28,24 +30,24 @@ class Game
     game_ended = false
 
     board.who_wins?
-    if board.x_winner == true or board.o_winner == true
+    if (board.x_winner == true) || (board.o_winner == true)
       game_ended = true
       game_end(board.x_winner, board.o_winner)
     end
 
-    if @turn_counter < 9 and game_ended == false
+    if (@turn_counter < 9) && (game_ended == false)
       if turn_counter.even?
-        puts "Player 1: Your turn. Please enter a number between 1 and 9"
+        puts 'Player 1: Your turn. Please enter a number between 1 and 9'
         player_turn(player_one.get_player_input, player_one.symbol, board)
       else
-        puts "Player 2: Your turn. Please enter a number between 1 and 9"
+        puts 'Player 2: Your turn. Please enter a number between 1 and 9'
         player_turn(player_two.get_player_input, player_two.symbol, board)
       end
       game_loop(player_one, player_two, board)
     end
-    if @turn_counter >= 9 and game_ended == false
-      game_end(board.x_winner, board.o_winner)
-    end
+    return unless (@turn_counter >= 9) && (game_ended == false)
+
+    game_end(board.x_winner, board.o_winner)
   end
 
   private
